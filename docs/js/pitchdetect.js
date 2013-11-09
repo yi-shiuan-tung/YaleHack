@@ -245,6 +245,9 @@ function updatePitch( time ) {
 				storeNote(noteStrings[note%12]);
 				oldtime = current;
 			}
+			else if (current-oldtime > 500){
+				storeNote(noteStrings[note%12],true);
+			}
 		}else{
 			oldtime = new Date().getTime();
 		}

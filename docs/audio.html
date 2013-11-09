@@ -8,7 +8,10 @@
   <script src="../build/tests/support/raphael.js"></script>
   <script src="js/pitchdetect.js"></script>
   <style>
-body { font: 14pt 'Alike', sans-serif;}
+body { 
+	font: 14pt 'Alike', sans-serif;
+	background-image:url('100tile.png');
+}
 #note { font-size: 120px; }
 .droptarget { background-color: #348781}
 div.confident { color: black; }
@@ -24,16 +27,18 @@ div.vague { color: lightgrey; }
 </style>
 </head>
 <body>
+<center><img style="height:200px;" src="logo.png"></center>
 <script src="http://cwilso.github.io/AudioContext-MonkeyPatch/AudioContextMonkeyPatch.js"></script>
-<button id="start" style="float:right;">Start</button>
-<button onclick="this.innerText = togglePlayback()" style="float:right;">Transcribe Demo Audio</button>
 <br>
-<div id="detector" class="vague" style="float:right">
+<button onclick="toggleLiveInput()">Sing</button>
+<button onclick="this.innerText = togglePlayback()">Start/Stop Demo Song</button>
+<br>
+<canvas width=700 height=1000 style="float:right;"></canvas>
+<div id="detector" class="vague">
 <div class="pitch" style="display:none"><span id="pitch">--</span>Hz</div>
 <div class="note"><span id="note">--</span></div>   
 <div id="detune" style="display:none"><span id="detune_amt">--</span><span id="flat">cents &#9837;</span><span id="sharp">cents &#9839;</span></div>
 </div>
-<canvas width=1000 height=1000></canvas>
 <script>
 navigator.getUserMedia  = navigator.getUserMedia ||
                           navigator.webkitGetUserMedia ||
@@ -100,7 +105,9 @@ var drawNotes = function(notes){
 			stave.setContext(ctx).draw();
 		}
 		for (note in notes[group]){
-			if (notes[group][note][1]) obj.push(new Vex.Flow.StaveNote({keys: ["b/4"], duration:"qr"}));
+			if (notes[group][note][1]){
+				obj.push(new Vex.Flow.StaveNote({keys: ["b/4"], duration:"qr"}));
+			}
 			else obj.push(new Vex.Flow.StaveNote({keys:[notes[group][note][0]+"/4"], duration:"q"}));
 		}
 		var voice = new Vex.Flow.Voice({
