@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.3.2/jquery.min.js"></script>
+<!-- VexFlow Compiled Source -->
+  <script src="../build/vexflow/vexflow-min.js"></script>
+  <script src="../build/tests/support/raphael.js"></script>
+  <script src="js/pitchdetect.js"></script>
+  <style>
+body { font: 14pt 'Alike', sans-serif;}
+#note { font-size: 120px; }
+.droptarget { background-color: #348781}
+div.confident { color: black; }
+div.vague { color: lightgrey; }
+#note { display: inline-block; width: 1em; text-align: left;}
+
+#detector { width: 200px; height: 120px; border: 4px solid gray; border-radius: 8px; text-align: center;}
+#output { position: absolute; width: 150px; height: 150px; }
+#flat { display: none; }
+#sharp { display: none; }
+.flat #flat { display: inline; }
+.sharp #sharp { display: inline; }
+</style>
+</head>
+<body>
+<script src="http://cwilso.github.io/AudioContext-MonkeyPatch/AudioContextMonkeyPatch.js"></script>
+<button id="start" style="float:right;">Start</button>
+<button onclick="this.innerText = togglePlayback()" style="float:right;">Transcribe Demo Audio</button>
+<br>
+<div id="detector" class="vague" style="float:right">
+<div class="pitch" style="display:none"><span id="pitch">--</span>Hz</div>
+<div class="note"><span id="note">--</span></div>   
+<div id="detune" style="display:none"><span id="detune_amt">--</span><span id="flat">cents &#9837;</span><span id="sharp">cents &#9839;</span></div>
+</div>
+<canvas width=1000 height=1000></canvas>
+<script>
+navigator.getUserMedia  = navigator.getUserMedia ||
+                          navigator.webkitGetUserMedia ||
+                          navigator.mozGetUserMedia ||
+                          navigator.msGetUserMedia;
+
+
+window.AudioContext = window.AudioContext ||
+                      window.webkitAudioContext;
+
+var context = new AudioContext();
+
+navigator.getUserMedia({video:true, audio: true}, function(stream) {
+  var microphone = context.createMediaStreamSource(stream);
+  var filter = context.createBiquadFilter();
+
+  // microphone -> filter -> destination.
+  microphone.connect(filter);
+  filter.connect(context.destination);
+}, errorCallback);
+
+var errorCallback = function(){
+	console.log("getUserMedia does not work with your browser");
+}
+</script>
+<script>
+var canvas = $("canvas")[0];
+var renderer = new Vex.Flow.Renderer(canvas,
+Vex.Flow.Renderer.Backends.CANVAS);
+
+//var ctx = renderer.getContext();
+//var stave = new Vex.Flow.Stave(10, 0, 500);
+//stave.addClef("treble").setContext(ctx).draw();
+
+var notes = [];
+var obj = [];
+var storeNote = function(note,rest){
+	if (note != "--" ){
+		if (notes.length == 0){
+			notes.push([[note,rest]]);
+		}
+		else if (notes[notes.length-1].length<4){
+			notes[notes.length-1].push([note,rest]);
+		}
+		else{
+			notes.push([[note,rest]]);
+		}
+	}
+	drawNotes(notes);
+}
+
+var drawNotes = function(notes){
+	var canvas = $("canvas")[0];
+	var renderer = new Vex.Flow.Renderer(canvas,
+	Vex.Flow.Renderer.Backends.CANVAS);
+	var ctx = renderer.getContext();
+	ctx.clearRect(0,0,canvas.width,canvas.height);
+	for (group in notes){
+		if (group == 0){
+			var stave = new Vex.Flow.Stave(10, 0, 500);
+			stave.addClef("treble").setContext(ctx).draw();
+		}else{
+			var stave = new Vex.Flow.Stave(10, group*60, 500);
+			stave.setContext(ctx).draw();
+		}
+		for (note in notes[group]){
+			if (notes[group][note][1]) obj.push(new Vex.Flow.StaveNote({keys: ["b/4"], duration:"qr"}));
+			else obj.push(new Vex.Flow.StaveNote({keys:[notes[group][note][0]+"/4"], duration:"q"}));
+		}
+		var voice = new Vex.Flow.Voice({
+			num_beats: obj.length,
+			beat_value: 4,
+			resolution: Vex.Flow.RESOLUTION
+		});
+
+		voice.addTickables(obj);
+		var formatter = new Vex.Flow.Formatter().
+		joinVoices([voice]).format([voice], 500);
+		// Render voice
+		voice.draw(ctx, stave);
+		obj = [];
+	}
+}
+
+var start = $('#start')[0];
+start.addEventListener('click',function(){
+	toggleLiveInput();
+})
+</script>
+</body>
+</html>
