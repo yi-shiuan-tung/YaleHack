@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # VexFlow 2
 
 A JavaScript library for rendering music notation.
@@ -94,3 +95,9 @@ THE SOFTWARE.
 * [The VexFlow Tutorial](http://vexflow.com/docs/tutorial.html)
 * [VexFlow Google Group](https://groups.google.com/forum/?fromgroups#!forum/vexflow)
 * [Me](http://0xfe.muthanna.com)
+=======
+YaleHack
+========
+
+A project that transcribes music from sound to sheet music.
+>>>>>>> 0f16a5da8355a52a5c6e25306dc122c7847c8416
